@@ -6,16 +6,16 @@ from PIL import Image, ImageDraw
 # Генерация случайного генотипа
 def generate_genotype():
 
-    # Гены биоморфы
+    # Гены
     skeleton_genes = [random.randint(-9, 9) for _ in range(15)]
     random.shuffle(skeleton_genes)
 
-    # Длина биоморфы
+    # Длина
     length_gene = random.randint(2, 12)
     genotype = skeleton_genes + [length_gene]
     return genotype
 
-# Генерация фенотипа (изображения биоморфы) из генотипа
+# Рисуем биоморфу из генов
 def generate_phenotype(genotype, size=(150, 150)):
     image = Image.new("L", (150, 150))
     draw = ImageDraw. Draw(image)
@@ -30,9 +30,8 @@ def generate_phenotype(genotype, size=(150, 150)):
             draw.line([center, (end_x, end_y)], fill=255, width=1)
     return image
 
-# Функция подсчета степени подобия между биоморфами
+# Подсчет подобия
 def similarity(biomorph1, biomorph2):
-    # Преобразование изображений в массивы numpy
     array1 = np.array(biomorph1)
     array2 = np.array(biomorph2)
 
@@ -40,11 +39,10 @@ def similarity(biomorph1, biomorph2):
     norm_array1 = (array1 - array1.mean()) / (array1.std() * len(array1))
     norm_array2 = (array2 - array2.mean()) / (array2.std())
 
-    # Нормализованная кросс-корреляция
+    # кросс-корреляция
     correlation = np.sum(norm_array1 * norm_array2)
     return correlation
 
-# Основная функция эволюции
 def evolution(target_biomorph, population_size=100, generations=10):
     # Генерация начальной популяции
     population = [generate_genotype() for _ in range(population_size)]
@@ -52,12 +50,12 @@ def evolution(target_biomorph, population_size=100, generations=10):
     unchanged_generations = 0
 
     for generation in range(generations):
-        # Оценка степени подобия каждой биоморфы в популяции с целевой биоморфой
+        # оценка подобия с целевой биоморфой
         similarities = [similarity(generate_phenotype(biomorph), target_biomorph) for biomorph in population]
         max_similarity = max(similarities)
         max_index = similarities.index(max_similarity)
 
-        # Проверка на прекращение эволюции
+        # прекращение эволюции
         if max_similarity <= best_similarity:
             unchanged_generations += 1
             if unchanged_generations >= 10:
@@ -69,7 +67,7 @@ def evolution(target_biomorph, population_size=100, generations=10):
         # Выбор наиболее подходящих биоморф
         selected_genotypes = [population[i] for i in range(population_size) if similarities[i] == max_similarity]
 
-        # Мутация
+        # Мутации
         new_population = []
         for genotype in selected_genotypes:
             mutated_genotypes = [genotype[:i] + [genotype[i] + random.choice([-1, 1])] + genotype[i+1:] for i in range(len(genotype) - 1)]
@@ -83,7 +81,6 @@ def evolution(target_biomorph, population_size=100, generations=10):
 
     return generate_phenotype(population[max_index]), best_similarity
 
-# Пример использования
 if __name__ == "__main__":
     # Задаем целевую биоморфу (например, котика)
     target_biomorph = generate_phenotype(generate_genotype())
